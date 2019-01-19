@@ -1,0 +1,70 @@
+{
+  "name": "atrius-data-scripts",
+  "description": "Commands for converting missions or geo files",
+  "version": "0.0.0",
+  "author": "Grant DeCoux",
+  "bin": {
+    "atrius": "./bin/run"
+  },
+  "bugs": "https://github.com/gdecoux/atrius-data-scripts/issues",
+  "dependencies": {
+    "@google/maps": "^0.5.5",
+    "@oclif/command": "^1",
+    "@oclif/config": "^1",
+    "@oclif/plugin-help": "^2",
+    "@turf/turf": "^5.1.6",
+    "bluebird": "^3.5.3",
+    "request": "^2.88.0",
+    "request-promise": "^4.2.2",
+    "strxml": "^0.0.0",
+    "tslib": "^1",
+    "unzipper": "^0.9.7"
+  },
+  "devDependencies": {
+    "@oclif/dev-cli": "^1",
+    "@oclif/tslint": "^3",
+    "@types/bluebird": "^3.5.25",
+    "@types/chai": "^4",
+    "@types/google__maps": "^0.5.0",
+    "@types/mocha": "^5",
+    "@types/node": "^10",
+    "@types/request": "^2.48.1",
+    "@types/request-promise": "^4.1.42",
+    "@types/unzipper": "^0.9.1",
+    "globby": "^8",
+    "ts-node": "^7",
+    "tslint": "^5",
+    "typescript": "^3.2"
+  },
+  "engines": {
+    "node": ">=8.0.0"
+  },
+  "files": [
+    "/bin",
+    "/lib",
+    "/npm-shrinkwrap.json",
+    "/oclif.manifest.json"
+  ],
+  "homepage": "https://github.com/gdecoux/atrius-data-scripts",
+  "keywords": [
+    "oclif"
+  ],
+  "license": "MIT",
+  "main": "lib/index.js",
+  "oclif": {
+    "commands": "./lib/commands",
+    "bin": "atrius",
+    "plugins": [
+      "@oclif/plugin-help"
+    ]
+  },
+  "repository": "gdecoux/atrius-data-scripts",
+  "scripts": {
+    "postpack": "rm -f oclif.manifest.json",
+    "posttest": "tslint -p . -t stylish",
+    "prepack": "rm -rf lib && tsc -b && oclif-dev manifest && oclif-dev readme",
+    "test": "echo NO TESTS",
+    "version": "oclif-dev readme && git add README.md"
+  },
+  "types": "lib/index.d.ts"
+}

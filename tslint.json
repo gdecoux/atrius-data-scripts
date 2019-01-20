@@ -18,7 +18,7 @@
     "object-literal-sort-keys": false,
     "array-type": false,
     "no-console": false,
-    "max-line-length": false,
+    "max-line-length": false
   },
   "rulesDirectory": []
 }

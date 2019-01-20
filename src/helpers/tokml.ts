@@ -112,7 +112,7 @@ function timestamp(_, options) {
 var geometry = {
   Point: function (_) {
     return tag('Point',
-      tag('coordinates', _.coordinates.join(',')) + tag('altitudeMode', 'relativeToGround'),
+      tag('coordinates', _.coordinates.join(',')) + tag('altitudeMode', 'absolute'),
     );
   },
   LineString: function (_) {

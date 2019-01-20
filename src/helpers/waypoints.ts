@@ -4,18 +4,31 @@ import * as maps from '@google/maps';
 const GOOGLE_API_KEY = 'AIzaSyDbjNSwLjxvNTTibselEaEWFCnQ7kgwShM';
 
 interface ToAbsoluteResult {
-  waypints: Waypoint[];
+  waypoints: Waypoint[];
   homeLocation: Point;
 }
 
-export async function toAbsolute(waypoints: Waypoint[], homeLocation: Point): Promise<any> {
+export async function toAbsolute(waypoints: Waypoint[], homeLocation: Point): Promise<ToAbsoluteResult> {
   const points = waypoints.map(waypoint => waypoint.point);
 
-  return getElevation([homeLocation, ...points]).then(locations => {
+  const homeElevationResult = await getElevation([homeLocation]);
+  const homeElevation = homeElevationResult[0].elevation;
 
+  const newWaypoints = waypoints.map(waypoint => ({
+    ...waypoint,
+    point: {
+      ...waypoint.point,
+      z: homeElevation + waypoint.point.z
+    }
+  }));
 
-
-  });
+  return {
+    waypoints: newWaypoints,
+    homeLocation: {
+      ...homeLocation,
+      z: homeElevation
+    }
+  };
 
 }
 
@@ -27,6 +40,7 @@ interface GetElevationResult {
 
 let mapClient: maps.GoogleMapsClient;
 export async function getElevation(points: Point[]): Promise<GetElevationResult[]> {
+  console.log(mapClient);
   mapClient = mapClient || maps.createClient({
     key: GOOGLE_API_KEY,
     Promise: Promise

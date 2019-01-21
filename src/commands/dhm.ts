@@ -7,7 +7,7 @@ import { getElevation } from '../helpers/elevation';
 import { Mission } from '../types';
 
 export default class Dhm extends Command {
-  static description = `\n converts drone harmony file to kml`;
+  static description = `\n converts drone harmony file to geojson, kml, or esri`;
 
   static flags = {
     help: flags.help({ char: 'h' }),

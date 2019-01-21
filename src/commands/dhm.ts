@@ -2,7 +2,7 @@ import { Command, flags } from '@oclif/command';
 import { Open } from 'unzipper';
 import { Feature, Point } from '@turf/helpers';
 import { mkdirSync, existsSync, writeFileSync } from 'fs';
-import { fromDroneHarmoney, combineMissions } from '../helpers/mission';
+import { fromDroneHarmoney, combineMissions, setZ, toAbsolute } from '../helpers/mission';
 import { getElevation } from '../helpers/elevation';
 import { Mission } from '../types';
 
@@ -48,16 +48,20 @@ export default class Dhm extends Command {
     const { missions, homeLocation } = fromDroneHarmoney(JSON.parse(fileString));
     const elevation = await this.getElevation(homeLocation);
 
+    setZ(homeLocation, elevation);
+
+    const result = missions.map(mission => toAbsolute(mission, elevation));
+
     if (flags.split) {
       if (!existsSync(flags.outFile)) { mkdirSync(flags.outFile); } // create directory for multiple outputs
-      missions.forEach((mission, index) => {
+      result.forEach((mission, index) => {
         mission.features.push(homeLocation);
         this.saveMission(mission, flags.format, `${flags.outFile}/${(mission as any).id}`);
       });
     } else {
-      const mission = combineMissions(missions);
+      const mission = combineMissions(result);
       mission.features.push(homeLocation);
-      this.saveMission(combineMissions(missions), flags.format, flags.outFile);
+      this.saveMission(mission, flags.format, flags.outFile);
     }
 
   }
@@ -84,7 +88,7 @@ export default class Dhm extends Command {
 
   saveMission(mission: Mission, format: string, outFile: string) {
     if (format === 'geojson') {
-      writeFileSync(`${outFile}${extensions[format]}`, JSON.stringify(mission));
+      writeFileSync(`${outFile}.${extensions[format]}`, JSON.stringify(mission));
     }
   }
 

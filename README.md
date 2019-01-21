@@ -28,45 +28,28 @@ USAGE
 <!-- usagestop -->
 # Commands
 <!-- commands -->
-* [`atrius dhm [FILE]`](#atrius-dhm-file)
-* [`atrius hello [FILE]`](#atrius-hello-file)
+* [`atrius dhm FILE`](#atrius-dhm-file)
 * [`atrius help [COMMAND]`](#atrius-help-command)
 
-## `atrius dhm [FILE]`
+## `atrius dhm FILE`
 
-describe the command here
+converts drone harmony file to kml
 
 ```
 USAGE
-  $ atrius dhm [FILE]
+  $ atrius dhm FILE
 
 OPTIONS
-  -f, --force
-  -h, --help       show CLI help
-  -n, --name=name  name to print
+  -f, --format=esri|kml|geojson  (required) [default: geojson] output format of mission.
+  -h, --help                     show CLI help
+  -o, --outFile=outFile          (required) [default: output] output file or directory name.
+  --split                        whether to split missions into seperate files.
+
+DESCRIPTION
+  converts drone harmony file to kml
 ```
 
 _See code: [src/commands/dhm.ts](https://github.com/gdecoux/atrius-data-scripts/blob/v0.0.0/src/commands/dhm.ts)_
-
-## `atrius hello [FILE]`
-
-describe the command here
-
-```
-USAGE
-  $ atrius hello [FILE]
-
-OPTIONS
-  -f, --force
-  -h, --help       show CLI help
-  -n, --name=name  name to print
-
-EXAMPLE
-  $ atrius hello
-  hello world from ./src/hello.ts!
-```
-
-_See code: [src/commands/hello.ts](https://github.com/gdecoux/atrius-data-scripts/blob/v0.0.0/src/commands/hello.ts)_
 
 ## `atrius help [COMMAND]`
 

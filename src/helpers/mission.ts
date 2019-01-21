@@ -31,6 +31,10 @@ export function toAbsolute(mission: Mission, takeoffElevation: number): Mission 
   return featureCollection(features);
 }
 
+export function setZ(feature: Feature<Point>, elevation: number): void {
+  feature.geometry!.coordinates[2] = elevation;
+}
+
 export function toKML(misison: Mission) { }
 
 export function toEsri(misison: Mission) { }

@@ -1,52 +1,36 @@
 import { Command, flags } from '@oclif/command';
 import { Open } from 'unzipper';
-import * as bluebird from 'bluebird';
-import {
-  FeatureCollection,
-  point,
-  Feature,
-  Point,
-  featureCollection,
-} from '@turf/helpers';
-import { writeFileSync, mkdirSync } from 'fs';
-
-import { DroneHarmonyState, SingleDroneMission, Waypoint } from '../types';
-import { toAbsolute } from '../helpers/waypoints';
-import tokml from '../helpers/tokml';
+import { Feature, Point } from '@turf/helpers';
+import { mkdirSync, existsSync, writeFileSync } from 'fs';
+import { fromDroneHarmoney, combineMissions } from '../helpers/mission';
+import { getElevation } from '../helpers/elevation';
+import { Mission } from '../types';
 
 export default class Dhm extends Command {
   static description = `\n converts drone harmony file to kml`;
 
   static flags = {
     help: flags.help({ char: 'h' }),
+    split: flags.boolean({
+      description: 'whether to split missions into seperate files.'
+    }),
     format: flags.string({
       required: true,
+      char: 'f',
       default: 'geojson',
       options: ['esri', 'kml', 'geojson'],
       description: 'output format of mission.'
     }),
-    split: flags.boolean({
-      required: false,
-      default: false,
-      description: 'whether to split missions into seperate files.'
-    }),
     outFile: flags.string({
       required: true,
+      char: 'o',
       default: 'output',
-      description: 'output file name.'
-    }),
-    outDir: flags.string({
-      required: true,
-      default: 'output',
-      description: 'output directory name if combine is set to false.'
+      description: 'output file or directory name.'
     })
   };
 
   static args = [
-    {
-      name: 'file',
-      required: true
-    }
+    { name: 'file', required: true }
   ];
 
   static FILE_NAME = 'data.json';
@@ -61,29 +45,19 @@ export default class Dhm extends Command {
       return;
     }
 
-    const dhState = JSON.parse(fileString) as DroneHarmonyState;
-
-    const missions = dhState.state.missionState.missions;
-    let homeLocation = dhState.state.transientState.homeLocation;
-
-    const result = new Array<FeatureCollection<Point>>();
-    await bluebird.map(missions, async (mission) => {
-      const newPoints = await toAbsolute(mission.singleDroneMission.dronePlan.waypoints.list, homeLocation);
-      mission.singleDroneMission.dronePlan.waypoints.list = newPoints.waypoints;
-      homeLocation = newPoints.homeLocation;
-      result.push(this.missionToGeoJSON(mission.singleDroneMission));
-    }, { concurrency: 1 });
+    const { missions, homeLocation } = fromDroneHarmoney(JSON.parse(fileString));
+    const elevation = await this.getElevation(homeLocation);
 
     if (flags.split) {
-      mkdirSync(flags.outDir);
-      result.forEach((mission, index) => {
-        this.writeMission(mission, flags.format, `${flags.outDir}/${index}.${extensions[flags.format]}`);
+      if (!existsSync(flags.outFile)) { mkdirSync(flags.outFile); } // create directory for multiple outputs
+      missions.forEach((mission, index) => {
+        mission.features.push(homeLocation);
+        this.saveMission(mission, flags.format, `${flags.outFile}/${(mission as any).id}`);
       });
     } else {
-      const coordinates = [homeLocation.y, homeLocation.x, homeLocation.z];
-      const test = point(coordinates);
-      result[0].features.push(test);
-      this.writeMission(this.combineMissions(result), flags.format, `${flags.outFile}.${extensions[flags.format]}`);
+      const mission = combineMissions(missions);
+      mission.features.push(homeLocation);
+      this.saveMission(combineMissions(missions), flags.format, flags.outFile);
     }
 
   }
@@ -101,52 +75,23 @@ export default class Dhm extends Command {
     });
   }
 
-  missionToKML(mission: FeatureCollection<Point>): string {
-    return tokml(mission);
+  async getElevation(feature: Feature<Point>): Promise<number> {
+    const coords = feature.geometry!.coordinates;
+    const query = { lng: coords[0], lat: coords[1] };
+    return getElevation(query)
+      .then(res => res.elevation);
   }
 
-  missionToGeoJSON(mission: SingleDroneMission): FeatureCollection<Point> {
-    const waypoints = this.waypointsToGeoJSON(mission.dronePlan.waypoints.list);
-    return featureCollection(waypoints, { id: mission.missionId });
-  }
-
-  waypointsToGeoJSON(waypoints: Waypoint[]): Feature<Point>[] {
-    return waypoints.map(waypoint => {
-
-      const properties = {
-        id: waypoint.id,
-        speed: waypoint.speed,
-        gimbals: waypoint.gimbals,
-        type: waypoint.type
-      };
-
-      const coordinates = [waypoint.point.y, waypoint.point.x, waypoint.point.z];
-
-      return point(coordinates);
-
-    });
-  }
-
-  combineMissions(missions: FeatureCollection<Point>[]): FeatureCollection<Point> {
-    const combinedFeatures = new Array<Feature<Point>>();
-    for (const featureCollection of missions) {
-      combinedFeatures.push(...featureCollection.features);
-    }
-    return featureCollection(combinedFeatures);
-  }
-
-  writeMission(mission: FeatureCollection<Point>, format: string, outFile: string): void {
+  saveMission(mission: Mission, format: string, outFile: string) {
     if (format === 'geojson') {
-      writeFileSync(outFile, JSON.stringify(mission));
-    } else if (format === 'kml') {
-      writeFileSync(outFile, this.missionToKML(mission));
+      writeFileSync(JSON.stringify(mission), `${outFile}${extensions[format]}`);
     }
   }
 
 }
 
-const extensions = {
+const extensions: { [format: string]: string } = {
   geojson: 'geojson',
-  kml: 'kml',
-  esri: 'json'
+  esri: 'json',
+  kml: 'kml'
 };

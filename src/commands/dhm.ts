@@ -48,7 +48,7 @@ export default class Dhm extends Command {
     const { missions, homeLocation } = fromDroneHarmoney(JSON.parse(fileString));
     const elevation = await this.getElevation(homeLocation);
 
-    setZ(homeLocation, elevation);
+    setZ(homeLocation, elevation); //
 
     const result = missions.map(mission => toAbsolute(mission, elevation));
 

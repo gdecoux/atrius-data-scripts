@@ -84,7 +84,7 @@ export default class Dhm extends Command {
 
   saveMission(mission: Mission, format: string, outFile: string) {
     if (format === 'geojson') {
-      writeFileSync(JSON.stringify(mission), `${outFile}${extensions[format]}`);
+      writeFileSync(`${outFile}${extensions[format]}`, JSON.stringify(mission));
     }
   }
 

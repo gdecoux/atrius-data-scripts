@@ -33,7 +33,7 @@ USAGE
 
 ## `atrius dhm FILE`
 
-converts drone harmony file to kml
+converts drone harmony file to geojson, kml, or esri
 
 ```
 USAGE
@@ -46,7 +46,7 @@ OPTIONS
   --split                        whether to split missions into seperate files.
 
 DESCRIPTION
-  converts drone harmony file to kml
+  converts drone harmony file to geojson, kml, or esri
 ```
 
 _See code: [src/commands/dhm.ts](https://github.com/gdecoux/atrius-data-scripts/blob/v0.0.0/src/commands/dhm.ts)_
